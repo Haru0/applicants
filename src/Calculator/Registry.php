@@ -13,7 +13,22 @@ class Registry
     /**
      * @var array
      */
-    public $providerPricing;
+    public $providerPricings;
+
+    /**
+     * @var array
+     */
+    public $contractLengths;
+
+    /**
+     * @var array
+     */
+    public $contractUsers;
+
+    /**
+     * @var array
+     */
+    public $contractProviders;
 
 
     /**
@@ -21,7 +36,52 @@ class Registry
      */
     public function register(Context $context)
     {
-        $this->providerPricing = array_column($context->getProviders(), 'price_per_kwh', 'id');
+        $this->registerProviderPricings($context->getProviders());
+        $this->registerContractLengths($context->getContracts());
+        $this->registerContractUsers($context->getContracts());
+        $this->registerContractProviders($context->getContracts());
     }
+
+
+    /**
+     * @param array $providers
+     * @return $this
+     */
+    protected function registerProviderPricings(array $providers)
+    {
+        $this->providerPricings = array_column($providers, 'price_per_kwh', 'id');
+        return $this;
+    }
+
+    /**
+     * @param array $contracts
+     * @return $this
+     */
+    protected function registerContractLengths(array $contracts)
+    {
+        $this->contractLengths = array_column($contracts, 'contract_length', 'id');
+        return $this;
+    }
+
+    /**
+     * @param array $contracts
+     * @return $this
+     */
+    protected function registerContractUsers(array $contracts)
+    {
+        $this->contractUsers = array_column($contracts, 'user_id', 'id');
+        return $this;
+    }
+
+    /**
+     * @param array $contracts
+     * @return $this
+     */
+    protected function registerContractProviders(array $contracts)
+    {
+        $this->contractProviders = array_column($contracts, 'provider_id', 'id');
+        return $this;
+    }
+
 
 }

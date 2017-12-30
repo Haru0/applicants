@@ -58,19 +58,24 @@ class Calculator
     protected function calculateBill(array $user): array
     {
         return array(
-            'price' => $this->calculatePrice($user['yearly_consumption'], $user['provider_id']),
+            'price' => $this->calculatePrice($user['id'], $user['yearly_consumption']),
             'user_id' => $user['id'],
         );
     }
 
     /**
+     * @param $user
      * @param $consumption
-     * @param $provider
      * @return float
      */
-    protected function calculatePrice($consumption, $provider): float
+    protected function calculatePrice($user, $consumption): float
     {
-        return $this->registry->providerPricing[$provider] * $consumption;
+        $contract = array_search($user, $this->registry->contractUsers);
+
+        return
+            $this->registry->contractLengths[$contract] *
+            $this->registry->providerPricings[$this->registry->contractProviders[$contract]] *
+            $consumption;
     }
 
 }
