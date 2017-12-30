@@ -30,6 +30,11 @@ class Registry
      */
     public $contractProviders;
 
+    /**
+     * @var array
+     */
+    public $greenContracts;
+
 
     /**
      * @param Context $context
@@ -40,6 +45,7 @@ class Registry
         $this->registerContractLengths($context->getContracts());
         $this->registerContractUsers($context->getContracts());
         $this->registerContractProviders($context->getContracts());
+        $this->registerGreenContractors($context->getContracts());
     }
 
 
@@ -83,5 +89,24 @@ class Registry
         return $this;
     }
 
+    /**
+     * @param array $contracts
+     * @return $this
+     */
+    protected function registerGreenContractors(array $contracts)
+    {
+        $this->greenContracts = array_filter(array_column($contracts, 'green', 'id'), array($this, 'isTrue'));
+        return $this;
+    }
+
+
+    /**
+     * @param $value
+     * @return bool
+     */
+    protected function isTrue($value): bool
+    {
+        return (true === $value);
+    }
 
 }
