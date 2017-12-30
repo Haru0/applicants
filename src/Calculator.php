@@ -71,10 +71,27 @@ class Calculator
     protected function calculatePrice($user, $consumption): float
     {
         $contract = array_search($user, $this->registry->contractUsers);
+        $length = $this->registry->contractLengths[$contract];
+        $discountFactor = 1;
+
+        switch (true) {
+            case ($length > 3):
+                $discountFactor -= .25;
+                break;
+            case ($length > 1):
+                $discountFactor -= .2;
+                break;
+            case ($length > 0):
+                $discountFactor -= .1;
+                break;
+            default:
+                /* Do nothing. */
+                break;
+        }
 
         return
-            $this->registry->contractLengths[$contract] *
-            $this->registry->providerPricings[$this->registry->contractProviders[$contract]] *
+            $length *
+            ($discountFactor * $this->registry->providerPricings[$this->registry->contractProviders[$contract]]) *
             $consumption;
     }
 
