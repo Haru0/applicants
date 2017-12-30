@@ -13,12 +13,17 @@ class Context
     /**
      * @var array
      */
-    public $users;
+    protected $users;
 
     /**
      * @var array
      */
-    public $providers;
+    protected $providers;
+
+    /**
+     * @var array
+     */
+    protected $contracts;
 
     /**
      * Context constructor.
@@ -28,8 +33,62 @@ class Context
      */
     public function __construct(array $users, array $providers)
     {
+        $this->setUsers($users)->setProviders($providers);
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getUsers(): array
+    {
+        return $this->users;
+    }
+
+    /**
+     * @param array $users
+     * @return Context
+     */
+    public function setUsers(array $users): Context
+    {
         $this->users = $users;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProviders(): array
+    {
+        return $this->providers;
+    }
+
+    /**
+     * @param array $providers
+     * @return Context
+     */
+    public function setProviders(array $providers): Context
+    {
         $this->providers = $providers;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getContracts(): array
+    {
+        return $this->contracts;
+    }
+
+    /**
+     * @param array $contracts
+     * @return Context
+     */
+    public function setContracts(array $contracts): Context
+    {
+        $this->contracts = $contracts;
+        return $this;
     }
 
 }

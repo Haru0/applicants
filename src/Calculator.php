@@ -3,6 +3,7 @@
 namespace Applicants;
 
 use Applicants\Calculator\Context;
+use Applicants\Calculator\Registry;
 
 /**
  * Calculator class.
@@ -13,21 +14,35 @@ class Calculator
 {
 
     /**
+     * @var Registry
+     */
+    protected $registry;
+
+
+    /**
+     * Calculator constructor.
+     */
+    public function __construct()
+    {
+        $this->registry = new Registry();
+    }
+
+
+    /**
      * @param Context $context
      * @return array
      */
     public function calculate(Context $context): array
     {
+        $this->registry->register($context);
+
         $index = 1;
         $bills = array();
 
-        $providersTransformed = array_column($context->providers, 'price_per_kwh', 'id');
-
-        foreach ($context->users as $user) {
-            $bills[] = array(
-                'id' => $index++,
-                'price' => $providersTransformed[$user['provider_id']] * $user['yearly_consumption'],
-                'user_id' => $user['id'],
+        foreach ($context->getUsers() as $user) {
+            $bills[] = array_merge(
+                array('id' => $index++),
+                $this->calculateBill($user)
             );
         }
 
@@ -36,5 +51,26 @@ class Calculator
         );
     }
 
-}
+    /**
+     * @param array $user
+     * @return array
+     */
+    protected function calculateBill(array $user): array
+    {
+        return array(
+            'price' => $this->calculatePrice($user['yearly_consumption'], $user['provider_id']),
+            'user_id' => $user['id'],
+        );
+    }
 
+    /**
+     * @param $consumption
+     * @param $provider
+     * @return float
+     */
+    protected function calculatePrice($consumption, $provider): float
+    {
+        return $this->registry->providerPricing[$provider] * $consumption;
+    }
+
+}
