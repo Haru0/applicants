@@ -58,7 +58,8 @@ class Calculator
     protected function calculateBill(array $user): array
     {
         return array(
-            'price' => $this->calculatePrice($user['id'], $user['yearly_consumption']),
+            'price' => ($price = $this->calculatePrice($user['id'], $user['yearly_consumption'])),
+            'commission' => $this->calculateCommission($user['id'], $price),
             'user_id' => $user['id'],
         );
     }
@@ -93,6 +94,27 @@ class Calculator
             $length *
             ($discountFactor * $this->registry->providerPricings[$this->registry->contractProviders[$contract]]) *
             $consumption;
+    }
+
+    /**
+     * @param $user
+     * @param $price
+     * @return array
+     */
+    protected function calculateCommission($user, $price)
+    {
+        $contract = array_search($user, $this->registry->contractUsers);
+        $length = $this->registry->contractLengths[$contract];
+
+        $insuranceFee = (365 * .05 * $length);
+        $providerFee = ($price - $insuranceFee);
+        $selectraFee = ($providerFee * .125);
+
+        return array(
+            'insurance_fee' => number_format($insuranceFee, 2),
+            'provider_fee' => number_format($providerFee, 2),
+            'selectra_fee' => number_format($selectraFee, 2),
+        );
     }
 
 }
