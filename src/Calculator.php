@@ -6,7 +6,6 @@ namespace Applicants;
  * Calculator class.
  *
  * @package Applicants
- * @author Michał Haracewiat <michal.haracewiat@polcode.net>
  */
 class Calculator
 {
