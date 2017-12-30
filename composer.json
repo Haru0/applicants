@@ -1,0 +1,30 @@
+{
+    "name": "Haru0/applicants",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "symfony/var-dumper": "^3.3"
+    },
+    "require-dev": {
+        "mikey179/vfsStream": "^1.6",
+        "phpunit/phpunit": "^6.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Applicants\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "config": {
+        "platform": {
+            "php": "7.1.9"
+        },
+        "sort-packages": true,
+        "optimize-autoloader": true
+    }
+}
