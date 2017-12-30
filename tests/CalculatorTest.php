@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Applicants\Calculator;
+use Applicants\Calculator\Context;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +43,7 @@ class CalculatorTest extends TestCase
 
         $this->assertEquals(
             $output,
-            $calculator->calculate($users, $providers)
+            $calculator->calculate(new Context($users, $providers))
         );
     }
 

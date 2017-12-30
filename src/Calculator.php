@@ -2,6 +2,8 @@
 
 namespace Applicants;
 
+use Applicants\Calculator\Context;
+
 /**
  * Calculator class.
  *
@@ -11,22 +13,21 @@ class Calculator
 {
 
     /**
-     * @param array $users
-     * @param array $providers
+     * @param Context $context
      * @return array
      */
-    public function calculate(array $users, array $providers): array
+    public function calculate(Context $context): array
     {
         $index = 1;
         $bills = array();
 
-        $providersTransformed = array_column($providers, 'price_per_kwh', 'id');
+        $providersTransformed = array_column($context->providers, 'price_per_kwh', 'id');
 
-        foreach ($users as $value) {
+        foreach ($context->users as $user) {
             $bills[] = array(
                 'id' => $index++,
-                'price' => $providersTransformed[$value['provider_id']] * $value['yearly_consumption'],
-                'user_id' => $value['id'],
+                'price' => $providersTransformed[$user['provider_id']] * $user['yearly_consumption'],
+                'user_id' => $user['id'],
             );
         }
 

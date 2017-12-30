@@ -13,8 +13,10 @@ try {
     die($exception->getMessage());
 }
 
+$context = new Calculator\Context($data['users'], $data['providers']);
+
 $calculator = new Calculator();
-$output = $calculator->calculate($data['users'], $data['providers']);
+$output = $calculator->calculate($context);
 
 header('Content-type: application/json');
 header('Content-Disposition: attachment; filename="output.json"');
