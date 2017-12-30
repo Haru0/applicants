@@ -3,6 +3,7 @@
 namespace Tests;
 
 use Applicants\Calculator;
+use Applicants\Calculator\Context;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
@@ -36,13 +37,17 @@ class CalculatorTest extends TestCase
     {
         $calculator = new Calculator();
 
+        $contracts = array(0 => array('contract_length' => 2, 'id' => 1, 'provider_id' => 1, 'user_id' => 1,), 1 => array('contract_length' => 1, 'id' => 2, 'provider_id' => 1, 'user_id' => 2,), 2 => array('contract_length' => 1, 'id' => 3, 'provider_id' => 2, 'user_id' => 3,),);
         $providers = array(0 => array('id' => 1, 'price_per_kwh' => 0.15,), 1 => array('id' => 2, 'price_per_kwh' => 0.145,), 2 => array('id' => 3, 'price_per_kwh' => 0.145,),);
-        $users = array(0 => array('id' => 1, 'provider_id' => 1, 'yearly_consumption' => 4000,), 1 => array('id' => 2, 'provider_id' => 1, 'yearly_consumption' => 2000,), 2 => array('id' => 3, 'provider_id' => 2, 'yearly_consumption' => 5000,),);
-        $output = array('bills' => array(0 => array('id' => 1, 'price' => 600.0, 'user_id' => 1,), 1 => array('id' => 2, 'price' => 300.0, 'user_id' => 2,), 2 => array('id' => 3, 'price' => 725.0, 'user_id' => 3,),),);
+        $users = array(0 => array('id' => 1, 'yearly_consumption' => 4000,), 1 => array('id' => 2, 'yearly_consumption' => 2000,), 2 => array('id' => 3, 'yearly_consumption' => 5000,),);
+        $output = array('bills' => array(0 => array('id' => 1, 'price' => 960.0, 'user_id' => 1,), 1 => array('id' => 2, 'price' => 270.0, 'user_id' => 2,), 2 => array('id' => 3, 'price' => 652.5, 'user_id' => 3,),),);
+
+        $context = new Context($users, $providers);
+        $context->setContracts($contracts);
 
         $this->assertEquals(
             $output,
-            $calculator->calculate($users, $providers)
+            $calculator->calculate($context)
         );
     }
 
