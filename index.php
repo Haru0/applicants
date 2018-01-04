@@ -8,13 +8,15 @@ require_once 'vendor/autoload.php';
 $importer = new Json();
 
 try {
-    $data = $importer->import(implode(DIRECTORY_SEPARATOR, array(__DIR__, 'part1', 'level4', 'data.json')));
+    $data = $importer->import(implode(DIRECTORY_SEPARATOR, array(__DIR__, 'part1', 'level5', 'data.json')));
 } catch (\Exception $exception) {
     die($exception->getMessage());
 }
 
 $context = new Calculator\Context($data['users'], $data['providers']);
-$context->setContracts($data['contracts']);
+$context
+    ->setContracts($data['contracts'])
+    ->setContractModifications($data['contract_modifications']);
 
 $calculator = new Calculator();
 $output = $calculator->calculate($context);
