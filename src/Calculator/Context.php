@@ -26,6 +26,12 @@ class Context
     protected $contracts;
 
     /**
+     * @var array
+     */
+    protected $contractModifications;
+
+
+    /**
      * Context constructor.
      *
      * @param array $users
@@ -88,6 +94,24 @@ class Context
     public function setContracts(array $contracts): Context
     {
         $this->contracts = $contracts;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getContractModifications(): array
+    {
+        return $this->contractModifications;
+    }
+
+    /**
+     * @param array $contractModifications
+     * @return Context
+     */
+    public function setContractModifications(array $contractModifications): Context
+    {
+        $this->contractModifications = $contractModifications;
         return $this;
     }
 

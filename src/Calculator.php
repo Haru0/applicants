@@ -39,10 +39,10 @@ class Calculator
         $index = 1;
         $bills = array();
 
-        foreach ($context->getUsers() as $user) {
+        foreach ($this->registry->getContracts() as $contract) {
             $bills[] = array_merge(
                 array('id' => $index++),
-                $this->calculateBill($user)
+                $this->calculateBill($contract)
             );
         }
 
@@ -52,26 +52,27 @@ class Calculator
     }
 
     /**
-     * @param array $user
+     * @param array $contract
      * @return array
      */
-    protected function calculateBill(array $user): array
+    protected function calculateBill($contract): array
     {
+
         return array(
-            'price' => ($price = $this->calculatePrice($user['id'], $user['yearly_consumption'])),
-            'commission' => $this->calculateCommission($user['id'], $price),
-            'user_id' => $user['id'],
+            'price' => ($price = $this->calculatePrice(($user = $this->registry->contractUsers[$contract]), $contract)),
+            'commission' => $this->calculateCommission($contract, $price),
+            'user_id' => $user,
         );
     }
 
     /**
      * @param $user
-     * @param $consumption
+     * @param $contract
      * @return float
      */
-    protected function calculatePrice($user, $consumption): float
+    protected function calculatePrice($user, $contract): float
     {
-        $contract = array_search($user, $this->registry->contractUsers);
+        $consumption = $this->registry->usersConsumption[$user];
 
         $length = $this->registry->contractLengths[$contract];
         $provider = $this->registry->contractProviders[$contract];
@@ -109,23 +110,31 @@ class Calculator
     }
 
     /**
-     * @param $user
+     * @param $contract
      * @param $price
      * @return array
      */
-    protected function calculateCommission($user, $price)
+    protected function calculateCommission($contract, $price)
     {
-        $contract = array_search($user, $this->registry->contractUsers);
         $length = $this->registry->contractLengths[$contract];
+        $provider = $this->registry->contractProviders[$contract];
 
         $insuranceFee = (365 * .05 * $length);
         $providerFee = ($price - $insuranceFee);
+
+        if (
+            (true == @$this->registry->cancelableProviders[$provider]) &&
+            (true == in_array($contract, $this->registry->canceledProviderContracts))
+        ) {
+            $providerFee += 50;
+        }
+
         $selectraFee = ($providerFee * .125);
 
         return array(
-            'insurance_fee' => number_format($insuranceFee, 2),
-            'provider_fee' => number_format($providerFee, 2),
-            'selectra_fee' => number_format($selectraFee, 2),
+            'insurance_fee' => round($insuranceFee, 2),
+            'provider_fee' => round($providerFee, 2),
+            'selectra_fee' => round($selectraFee, 2),
         );
     }
 

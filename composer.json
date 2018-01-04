@@ -3,6 +3,7 @@
     "type": "project",
     "license": "proprietary",
     "require": {
+        "illuminate/support": "^5.5",
         "symfony/var-dumper": "^3.3"
     },
     "require-dev": {
