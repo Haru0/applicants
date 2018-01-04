@@ -60,7 +60,7 @@ class Json implements Importer
      * @param int $depth
      * @return Json
      */
-    protected function setDepth(int $depth): Json
+    protected function setDepth(int $depth = 512): Json
     {
         $this->depth = $depth;
         return $this;
@@ -78,7 +78,7 @@ class Json implements Importer
      * @param int $options
      * @return Json
      */
-    protected function setOptions(int $options): Json
+    protected function setOptions(int $options = 0): Json
     {
         $this->options = $options;
         return $this;

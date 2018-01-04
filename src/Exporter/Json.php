@@ -16,7 +16,7 @@ class Json implements Exporter
     protected $options;
 
     /**
-     * @var int
+     * @var int|null
      */
     protected $depth;
 
@@ -25,9 +25,9 @@ class Json implements Exporter
      * Json constructor.
      *
      * @param int $options
-     * @param int|null $depth
+     * @param int $depth
      */
-    public function __construct(int $options = 0, int $depth = null)
+    public function __construct(int $options = 0, int $depth = 512)
     {
         $this->setOptions($options)->setDepth($depth);
     }
@@ -54,16 +54,16 @@ class Json implements Exporter
      * @param int $options
      * @return Json
      */
-    protected function setOptions(int $options): Json
+    protected function setOptions(int $options = 0): Json
     {
         $this->options = $options;
         return $this;
     }
 
     /**
-     * @return int
+     * @return int|null
      */
-    protected function getDepth(): int
+    protected function getDepth()
     {
         return $this->depth;
     }
@@ -72,7 +72,7 @@ class Json implements Exporter
      * @param int $depth
      * @return Json
      */
-    protected function setDepth(int $depth): Json
+    protected function setDepth(int $depth = 512): Json
     {
         $this->depth = $depth;
         return $this;
