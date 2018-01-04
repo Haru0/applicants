@@ -94,13 +94,28 @@ class Calculator
                 break;
         }
 
-        $price =
-            $discountFactor *
-            (
-                $length *
-                $consumption *
-                $this->registry->providerPricings[$provider]
-            );
+        $lengths = $lengths1 = $this->registry->contractSeasons[$contract];
+        $pricing = $this->registry->providerPricings[$provider];
+
+        array_walk(
+            $lengths,
+            function (& $days, $season, array $userdata = null) use ($consumption, $pricing, $contract) {
+                $seasonConsumption = $consumption * $days / (365 * $this->registry->contractLengths[$contract]);
+                $seasonPricing = ($pricing * (1 + $userdata[$season]));
+
+                $days = $seasonPricing * $seasonConsumption;
+
+                return;
+            },
+            array(
+                'spring' => .01,
+                'summer' => -.015,
+                'fall' => .007,
+                'winter' => .0,
+            )
+        );
+
+        $price = $discountFactor * array_sum($lengths);
 
         if (true == array_key_exists($contract, $this->registry->greenContracts)) {
             $price -= ($consumption * .05);

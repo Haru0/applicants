@@ -51,7 +51,7 @@ class Registry
     public $canceledProviderContracts = array();
 
     public $contractDates;
-
+    public $contractSeasons = array();
 
     /**
      * @param Context $context
@@ -77,7 +77,7 @@ class Registry
     {
         foreach ($contractModifications as $modification) {
             $contract = $modification['contract_id'];
-            list($start, $end) = array_values($this->contractDates[$contract]);
+            list($end, $start) = array_values($this->contractDates[$contract]);
 
             if (isset($modification['start_date'])) {
                 $start = \DateTime::createFromFormat('Y-m-d', $modification['start_date']);
@@ -98,12 +98,54 @@ class Registry
                 $this->contractProviders[] = $modification['provider_id'];
                 $this->contractUsers[] = $this->contractUsers[$contract];
                 $this->canceledProviderContracts[] = $contract;
+
+                $this->contractSeasons[] = $this->calculateSeasons($start, $end);
+
+
             } else {
                 $this->contractLengths[$contract] = $length;
+
+
+                $this->contractSeasons[$contract] = $this->calculateSeasons($start, $end);
             }
         }
 
         return $this;
+    }
+
+    protected function calculateSeasons(\DateTime $start, \DateTime $end): array
+    {
+        $seasons = [
+            'spring' => 0,
+            'summer' => 0,
+            'fall' => 0,
+            'winter' => 0,
+        ];
+        $season = null;
+
+        while ($start < $end) {
+            $m = $start->format('m');
+
+            switch (true) {
+                case ($m >= 3 && $m <= 5):
+                    $season = 'spring';
+                    break;
+                case ($m >= 6 && $m <= 8):
+                    $season = 'summer';
+                    break;
+                case ($m >= 9 && $m <= 11):
+                    $season = 'fall';
+                    break;
+                default:
+                    $season = 'winter';
+                    break;
+            }
+
+            $seasons[$season] += 1;
+            $start = $start->add(new \DateInterval('P1D'));
+        }
+
+        return $seasons;
     }
 
     /**
@@ -150,6 +192,18 @@ class Registry
         $this->contractLengths = array_map(
             array($this, 'mapLength'),
             array_column($contracts, null, 'id')
+        );
+
+        $this->contractSeasons = array_map(
+            function (array $dates) {
+                list($end, $start) = array_values($dates);
+
+                $start = \DateTime::createFromFormat('Y-m-d', $start);
+                $end = \DateTime::createFromFormat('Y-m-d', $end);
+
+                return $this->calculateSeasons($start, $end);
+            },
+            $this->contractDates
         );
 
         return $this;
