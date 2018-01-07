@@ -3,7 +3,10 @@
     "type": "project",
     "license": "proprietary",
     "require": {
+        "alrik11es/cowsayphp": "^1.2",
+        "camspiers/json-pretty": "^1.0",
         "illuminate/support": "^5.5",
+        "symfony/console": "^3.3",
         "symfony/var-dumper": "^3.3"
     },
     "require-dev": {

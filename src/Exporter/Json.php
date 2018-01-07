@@ -2,6 +2,8 @@
 
 namespace Applicants\Exporter;
 
+use Camspiers\JsonPretty\JsonPretty;
+
 /**
  * Json class.
  *
@@ -38,7 +40,17 @@ class Json implements Exporter
      */
     public function export(array $output): string
     {
-        return @json_encode($output, $this->getOptions(), $this->getDepth());
+        return $this->prettify(@json_encode($output, $this->getOptions(), $this->getDepth()));
+    }
+
+
+    /**
+     * @param $json
+     * @return string
+     */
+    protected function prettify($json): string
+    {
+        return (new JsonPretty())->prettify($json);
     }
 
 
