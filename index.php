@@ -9,7 +9,7 @@ require_once 'vendor/autoload.php';
 $importer = new JsonImporter();
 
 try {
-    $data = $importer->import(implode(DIRECTORY_SEPARATOR, array(__DIR__, 'part1', 'level5', 'data.json')));
+    $data = $importer->import(implode(DIRECTORY_SEPARATOR, array(__DIR__, 'part1', 'level6', 'data.json')));
 } catch (\Exception $exception) {
     die($exception->getMessage());
 }
