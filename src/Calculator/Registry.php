@@ -2,93 +2,172 @@
 
 namespace Applicants\Calculator;
 
+use Applicants\Resolver\Season as SeasonResolver;
+
 /**
  * Registry class.
  *
  * @package Applicants\Calculator
  */
-class Registry
+class Registry implements RegistryInterface
 {
 
     /**
      * @var array
      */
-    public $providerPricings;
+    public $providerPricings = array();
 
     /**
      * @var array
      */
-    public $contractLengths;
+    public $contractLengths = array();
 
     /**
      * @var array
      */
-    public $contractUsers;
+    public $contractDates = array();
 
     /**
      * @var array
      */
-    public $usersConsumption;
+    public $contractSeasons = array();
 
     /**
      * @var array
      */
-    public $contractProviders;
+    public $contractUsers = array();
 
     /**
      * @var array
      */
-    public $greenContracts;
+    public $usersConsumption = array();
 
     /**
      * @var array
      */
-    public $cancelableProviders;
+    public $contractProviders = array();
+
+    /**
+     * @var array
+     */
+    public $greenContracts = array();
+
+    /**
+     * @var array
+     */
+    public $cancelableProviders = array();
 
     /**
      * @var array
      */
     public $canceledProviderContracts = array();
 
-    public $contractDates;
-
-
     /**
      * @param Context $context
      */
-    public function register(Context $context)
+    public function register(Context $context): void
     {
         $this->registerContractDates($context->getContracts());
         $this->registerProviderPricings($context->getProviders());
-        $this->registerContractLengths($context->getContracts(), $context->getContractModifications());
+        $this->registerContractLengthsAndDates($context->getContracts());
         $this->registerContractUsers($context->getContracts());
         $this->registerUsersConsumption($context->getUsers());
-        $this->registerContractProviders($context->getContracts(), $context->getContractModifications());
+        $this->registerContractProviders($context->getContracts());
         $this->registerGreenContractors($context->getContracts());
         $this->registerCancelableProviders($context->getProviders());
         $this->registerContractModifications($context->getContractModifications());
     }
 
     /**
-     * @param array $contractModifications
-     * @return $this
+     * Clear stored values.
      */
-    protected function registerContractModifications(array $contractModifications)
+    public function clean(): void
     {
+        $this->providerPricings =
+        $this->contractLengths =
+        $this->contractUsers =
+        $this->usersConsumption =
+        $this->contractProviders =
+        $this->greenContracts =
+        $this->cancelableProviders =
+        $this->canceledProviderContracts =
+        $this->contractDates =
+        $this->contractSeasons = array();
+    }
+
+
+    /**
+     * @param int $contract
+     * @return int
+     */
+    public function getContractUser(int $contract): int
+    {
+        return $this->contractUsers[$contract];
+    }
+
+    /**
+     * @param int $contract
+     * @return float
+     */
+    public function getContractLength(int $contract): float
+    {
+        return $this->contractLengths[$contract];
+    }
+
+    public function getUserConsumption(int $user): int
+    {
+        return $this->usersConsumption[$user];
+    }
+
+    /**
+     * @param int $contract
+     * @return int
+     */
+    public function getContractProvider(int $contract): int
+    {
+        return $this->contractProviders[$contract];
+    }
+
+    /**
+     * @param int $contract
+     * @return bool
+     */
+    public function isContractCanceled(int $contract): bool
+    {
+        $provider = $this->contractProviders[$contract];
+
+        return (
+            (true == @$this->cancelableProviders[$provider]) &&
+            (true == in_array($contract, $this->canceledProviderContracts))
+        );
+    }
+
+
+    /**
+     * @param array $contractModifications
+     * @return Registry
+     */
+    protected function registerContractModifications(array $contractModifications): Registry
+    {
+        /** @var array $modification */
         foreach ($contractModifications as $modification) {
+            if (false == array_key_exists('contract_id', $modification)) {
+                continue;
+            }
+
             $contract = $modification['contract_id'];
-            list($start, $end) = array_values($this->contractDates[$contract]);
+            list($end, $start) = array_values($this->contractDates[$contract]);
 
             if (isset($modification['start_date'])) {
-                $start = \DateTime::createFromFormat('Y-m-d', $modification['start_date']);
+                $start = $this->mapDate($modification['start_date']);
             } else {
-                $start = \DateTime::createFromFormat('Y-m-d', $start);
+                $start = $this->mapDate($start);
             }
 
             if (isset($modification['end_date'])) {
-                $end = \DateTime::createFromFormat('Y-m-d', $modification['end_date']);
+                $end = $this->mapDate($modification['end_date']);
             } else {
-                $end = \DateTime::createFromFormat('Y-m-d', $end);
+                $end = $this->mapDate($end);
             }
 
             $length = $this->calculateLength($start, $end);
@@ -98,8 +177,10 @@ class Registry
                 $this->contractProviders[] = $modification['provider_id'];
                 $this->contractUsers[] = $this->contractUsers[$contract];
                 $this->canceledProviderContracts[] = $contract;
+                $this->contractSeasons[] = $this->calculateSeasonLengths($start, $end);
             } else {
                 $this->contractLengths[$contract] = $length;
+                $this->contractSeasons[$contract] = $this->calculateSeasonLengths($start, $end);
             }
         }
 
@@ -114,11 +195,12 @@ class Registry
         return array_keys($this->contractLengths);
     }
 
+
     /**
      * @param array $contracts
-     * @return $this
+     * @return Registry
      */
-    protected function registerContractDates(array $contracts)
+    protected function registerContractDates(array $contracts): Registry
     {
         $this->contractDates = array_map(
             function (array $contract) {
@@ -127,14 +209,26 @@ class Registry
             array_column($contracts, null, 'id')
         );
 
+        $this->contractSeasons = array_map(
+            function (array $dates) {
+                list($end, $start) = array_values($dates);
+
+                return $this->calculateSeasonLengths(
+                    $this->mapDate($start),
+                    $this->mapDate($end)
+                );
+            },
+            $this->contractDates
+        );
+
         return $this;
     }
 
     /**
      * @param array $providers
-     * @return $this
+     * @return Registry
      */
-    protected function registerProviderPricings(array $providers)
+    protected function registerProviderPricings(array $providers): Registry
     {
         $this->providerPricings = array_column($providers, 'price_per_kwh', 'id');
         return $this;
@@ -142,13 +236,12 @@ class Registry
 
     /**
      * @param array $contracts
-     * @param array $contractModifications
      * @return $this
      */
-    protected function registerContractLengths(array $contracts, array $contractModifications)
+    protected function registerContractLengthsAndDates(array $contracts)
     {
         $this->contractLengths = array_map(
-            array($this, 'mapLength'),
+            array($this, 'mapContractLength'),
             array_column($contracts, null, 'id')
         );
 
@@ -177,10 +270,9 @@ class Registry
 
     /**
      * @param array $contracts
-     * @param array $contractModifications
      * @return $this
      */
-    protected function registerContractProviders(array $contracts, array $contractModifications)
+    protected function registerContractProviders(array $contracts)
     {
         $this->contractProviders = array_column($contracts, 'provider_id', 'id');
         return $this;
@@ -217,19 +309,65 @@ class Registry
 
     /**
      * @param array $contract
-     * @return string
+     * @return float
      */
-    protected function mapLength(array $contract)
+    protected function mapContractLength(array $contract): float
     {
-        $start = \DateTime::createFromFormat('Y-m-d', $contract['start_date']);
-        $end = \DateTime::createFromFormat('Y-m-d', $contract['end_date']);
-
-        return $this->calculateLength($start, $end);
+        return $this->calculateLength(
+            $this->mapDate($contract['start_date']),
+            $this->mapDate($contract['end_date'])
+        );
     }
 
-    protected function calculateLength(\DateTime $start, \DateTime $end)
+    /**
+     * @param string $date
+     * @param string $format
+     * @return \DateTime
+     * @throws \Exception
+     */
+    protected function mapDate(string $date, string $format = 'Y-m-d'): \DateTime
     {
-        return (float)number_format(($end->diff($start)->format('%a') / 365), 2);
+        if (false !== ($date = \DateTime::createFromFormat($format, $date))) {
+            return $date;
+        }
+
+        throw new \Exception('Invalid date');
+    }
+
+    /**
+     * @todo Make it more precise (include leap-years).
+     *
+     * @param \DateTime $start
+     * @param \DateTime $end
+     * @return float
+     */
+    protected function calculateLength(\DateTime $start, \DateTime $end): float
+    {
+        return round(($end->diff($start)->format('%a') / 365), 2);
+    }
+
+    /**
+     * @param \DateTime $start
+     * @param \DateTime $end
+     * @return array
+     */
+    protected function calculateSeasonLengths(\DateTime $start, \DateTime $end): array
+    {
+        $seasons = array(
+            SeasonResolver::SPRING => 0,
+            SeasonResolver::SUMMER => 0,
+            SeasonResolver::FALL => 0,
+            SeasonResolver::WINTER => 0,
+        );
+
+        $iterator = clone($start);
+
+        while ($iterator < $end) {
+            $seasons[SeasonResolver::resolve($start)] += 1;
+            $iterator->add(new \DateInterval('P1D'));
+        }
+
+        return $seasons;
     }
 
 
